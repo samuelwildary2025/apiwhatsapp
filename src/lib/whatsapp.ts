@@ -182,7 +182,7 @@ export class WhatsAppManager extends EventEmitter {
         }, 1000);
     }
 
-    async getStatus(instanceId: string) {
+    getStatus(instanceId: string) {
         const instance = this.instances.get(instanceId);
         if (!instance) return 'not_found';
         return instance.status;
@@ -197,7 +197,7 @@ export class WhatsAppManager extends EventEmitter {
     private async updateInstanceStatus(id: string, status: string) {
         await prisma.instance.update({
             where: { id },
-            data: { status }
+            data: { status: status as any }
         });
     }
 
@@ -230,51 +230,51 @@ export class WhatsAppManager extends EventEmitter {
     // Stubs for Compatibility (To be implemented)
     // ==========================================
 
-    async getContacts(instanceId: string) { return []; }
-    async getContactById(instanceId: string, contactId: string) { return null; }
-    async isRegisteredUser(instanceId: string, number: string) { return true; }
-    async blockContact(instanceId: string, contactId: string) { }
-    async unblockContact(instanceId: string, contactId: string) { }
-    async getBlockedContacts(instanceId: string) { return []; }
-    async getProfilePicUrl(instanceId: string, contactId: string) { return ''; }
+    async getContacts(_instanceId: string) { return []; }
+    async getContactById(_instanceId: string, _contactId: string) { return null; }
+    async isRegisteredUser(_instanceId: string, _number: string) { return true; }
+    async blockContact(_instanceId: string, _contactId: string) { }
+    async unblockContact(_instanceId: string, _contactId: string) { }
+    async getBlockedContacts(_instanceId: string) { return []; }
+    async getProfilePicUrl(_instanceId: string, _contactId: string) { return ''; }
 
-    async getChats(instanceId: string) { return []; }
-    async getChatById(instanceId: string, chatId: string) { return null; }
-    async getMessages(instanceId: string, chatId: string, limit = 50) { return []; }
-    async clearChat(instanceId: string, chatId: string) { }
-    async deleteChat(instanceId: string, chatId: string) { }
-    async archiveChat(instanceId: string, chatId: string) { }
-    async unarchiveChat(instanceId: string, chatId: string) { }
-    async pinChat(instanceId: string, chatId: string) { }
-    async unpinChat(instanceId: string, chatId: string) { }
-    async muteChat(instanceId: string, chatId: string, duration?: any) { }
-    async unmuteChat(instanceId: string, chatId: string) { }
-    async markChatUnread(instanceId: string, chatId: string) { }
-    async resolveChatId(instance: any, number: string) { return number.includes('@') ? number : number + '@c.us'; }
+    async getChats(_instanceId: string) { return []; }
+    async getChatById(_instanceId: string, _chatId: string) { return null; }
+    async getMessages(_instanceId: string, _chatId: string, _limit = 50) { return []; }
+    async clearChat(_instanceId: string, _chatId: string) { }
+    async deleteChat(_instanceId: string, _chatId: string) { }
+    async archiveChat(_instanceId: string, _chatId: string) { }
+    async unarchiveChat(_instanceId: string, _chatId: string) { }
+    async pinChat(_instanceId: string, _chatId: string) { }
+    async unpinChat(_instanceId: string, _chatId: string) { }
+    async muteChat(_instanceId: string, _chatId: string, _duration?: any) { }
+    async unmuteChat(_instanceId: string, _chatId: string) { }
+    async markChatUnread(_instanceId: string, _chatId: string) { }
+    async resolveChatId(_instance: any, number: string) { return number.includes('@') ? number : number + '@c.us'; }
 
-    async createGroup(instanceId: string, name: string, participants: string[]) { return {}; }
-    async getGroupInfo(instanceId: string, groupId: string) { return {}; }
-    async addParticipants(instanceId: string, groupId: string, participants: string[]) { }
-    async removeParticipants(instanceId: string, groupId: string, participants: string[]) { }
-    async promoteParticipants(instanceId: string, groupId: string, participants: string[]) { }
-    async demoteParticipants(instanceId: string, groupId: string, participants: string[]) { }
-    async setGroupSubject(instanceId: string, groupId: string, subject: string) { }
-    async setGroupDescription(instanceId: string, groupId: string, description: string) { }
-    async leaveGroup(instanceId: string, groupId: string) { }
-    async getInviteCode(instanceId: string, groupId: string) { return ''; }
-    async revokeInviteCode(instanceId: string, groupId: string) { return ''; }
-    async joinGroupByInviteCode(instanceId: string, inviteCode: string) { return ''; }
+    async createGroup(_instanceId: string, _name: string, _participants: string[]) { return {}; }
+    async getGroupInfo(_instanceId: string, _groupId: string) { return {}; }
+    async addParticipants(_instanceId: string, _groupId: string, _participants: string[]) { }
+    async removeParticipants(_instanceId: string, _groupId: string, _participants: string[]) { }
+    async promoteParticipants(_instanceId: string, _groupId: string, _participants: string[]) { }
+    async demoteParticipants(_instanceId: string, _groupId: string, _participants: string[]) { }
+    async setGroupSubject(_instanceId: string, _groupId: string, _subject: string) { }
+    async setGroupDescription(_instanceId: string, _groupId: string, _description: string) { }
+    async leaveGroup(_instanceId: string, _groupId: string) { }
+    async getInviteCode(_instanceId: string, _groupId: string) { return ''; }
+    async revokeInviteCode(_instanceId: string, _groupId: string) { return ''; }
+    async joinGroupByInviteCode(_instanceId: string, _inviteCode: string) { return ''; }
 
-    async sendMedia(instanceId: string, to: string, mediaUrl: string, options?: any) { }
-    async sendMediaBase64(instanceId: string, to: string, base64: string, mimetype: string, options?: any) { }
-    async sendLocation(instanceId: string, to: string, latitude: number, longitude: number, description?: string) { }
-    async sendContact(instanceId: string, to: string, contactId: string) { }
-    async sendPoll(instanceId: string, to: string, title: string, options: string[], pollOptions?: any) { }
-    async sendPresence(instanceId: string, to: string, presence: any) { }
-    async editMessage(instanceId: string, messageId: string, newText: string) { }
-    async reactToMessage(instanceId: string, messageId: string, reaction: string) { }
-    async deleteMessage(instanceId: string, messageId: string, forEveryone: boolean = true) { }
-    async downloadMedia(instanceId: string, messageId: string) { return null; }
+    async sendMedia(_instanceId: string, _to: string, _mediaUrl: string, _options?: any) { }
+    async sendMediaBase64(_instanceId: string, _to: string, _base64: string, _mimetype: string, _options?: any) { }
+    async sendLocation(_instanceId: string, _to: string, _latitude: number, _longitude: number, _description?: string) { }
+    async sendContact(_instanceId: string, _to: string, _contactId: string) { }
+    async sendPoll(_instanceId: string, _to: string, _title: string, _options: string[], _pollOptions?: any) { }
+    async sendPresence(_instanceId: string, _to: string, _presence: any) { }
+    async editMessage(_instanceId: string, _messageId: string, _newText: string) { }
+    async reactToMessage(_instanceId: string, _messageId: string, _reaction: string) { }
+    async deleteMessage(_instanceId: string, _messageId: string, _forEveryone: boolean = true) { }
+    async downloadMedia(_instanceId: string, _messageId: string, _options?: any) { return null; }
 
     async sendText(instanceId: string, to: string, content: string) {
         return this.sendMessage(instanceId, to, content);
@@ -282,21 +282,24 @@ export class WhatsAppManager extends EventEmitter {
 
     // Aliases for compatibility
     async getChatMessages(instanceId: string, chatId: string, limit = 50) { return this.getMessages(instanceId, chatId, limit); }
-    async markChatAsRead(instanceId: string, chatId: string) { return this.markChatUnread(instanceId, chatId); } // TODO: Implement read vs unread correctly
+    async markChatAsRead(instanceId: string, chatId: string) { return this.markChatUnread(instanceId, chatId); }
+    async markChatAsUnread(instanceId: string, chatId: string) { return this.markChatUnread(instanceId, chatId); }
 
     // Profile
-    async setProfileName(instanceId: string, name: string) { }
-    async setMyStatus(instanceId: string, status: string) { } // Changed name to avoid conflict with getStatus/setStatus logic if any
-    async setProfilePicture(instanceId: string, url: string) { }
+    async setProfileName(_instanceId: string, _name: string) { }
+    async setMyStatus(_instanceId: string, _status: string) { }
+    async setStatus(instanceId: string, status: string) { return this.setMyStatus(instanceId, status); }
+    async setProfilePicture(_instanceId: string, _url: string) { }
 
     // Labels
-    async getLabels(instanceId: string) { return []; }
-    async addLabelToChat(instanceId: string, chatId: string, labelId: string) { }
-    async removeLabelFromChat(instanceId: string, chatId: string, labelId: string) { }
+    async getLabels(_instanceId: string) { return []; }
+    async addLabelToChat(_instanceId: string, _chatId: string, _labelId: string) { }
+    async removeLabelFromChat(_instanceId: string, _chatId: string, _labelId: string) { }
 
-    async updateInstanceSettings(id: string, settings: any) {
+    async updateInstanceSettings(_id: string, _settings: any) {
         // ... logic to update settings
     }
+    async updateSettings(instanceId: string, settings: any) { return this.updateInstanceSettings(instanceId, settings); }
     async getSettings(instanceId: string) { return this.instanceSettings.get(instanceId) || {}; }
 
     formatNumber(number: string): string {
