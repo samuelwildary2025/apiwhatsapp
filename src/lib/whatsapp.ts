@@ -71,21 +71,19 @@ export class WhatsAppManager extends EventEmitter {
             }
         });
 
-        // AGGRESSIVE MEMORY OPTIMIZATIONS
+        // MEMORY OPTIMIZATIONS (balanced for functionality)
         const launchOptions: any = {
             headless: true,
-            // Minimum viable viewport - WhatsApp Web works at 320px width
-            viewport: { width: 320, height: 240 },
-            // Mobile user agent uses less resources
-            userAgent: 'Mozilla/5.0 (Linux; Android 10; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+            // Minimum viewport that WhatsApp Web needs to show QR code
+            viewport: { width: 600, height: 400 },
+            // Desktop user agent (mobile causes redirect issues)
+            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
             bypassCSP: true,
             javaScriptEnabled: true,
             locale: 'pt-BR',
             ignoreHTTPSErrors: true,
             // Disable service workers to save memory
             serviceWorkers: 'block',
-            // Don't store offline data
-            offline: false,
             // Reduce color depth
             colorScheme: 'dark',
             // Disable animations
