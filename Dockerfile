@@ -24,7 +24,7 @@ RUN npm run build
 
 # Stage 3: Runner
 # Use official Playwright image which includes WebKit dependencies (Ubuntu based)
-FROM mcr.microsoft.com/playwright:v1.49.1-jammy AS runner
+FROM mcr.microsoft.com/playwright:v1.57.0-jammy AS runner
 
 WORKDIR /app
 
