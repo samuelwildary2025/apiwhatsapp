@@ -189,25 +189,19 @@ export class WhatsAppManager extends EventEmitter {
                 // Check for QR Code
                 const qrCanvas = await page.$('canvas');
                 if (qrCanvas) {
-                    // Extract QR Data
-                    const qrData = await page.evaluate(() => {
-                        const selector = document.querySelector('canvas');
-                        // @ts-ignore
-                        return selector ? selector.closest('[data-ref]').getAttribute('data-ref') : null;
-                    });
-
                     // Generate Base64 for display
                     const qrBase64 = await page.evaluate(() => {
                         const canvas = document.querySelector('canvas');
                         return canvas ? canvas.toDataURL() : null;
                     });
 
-                    if (qrData && qrBase64 && instance.qrCode !== qrData) {
+                    // Use a hash of the base64 as the QR identifier to detect changes
+                    if (qrBase64 && instance.qrCodeBase64 !== qrBase64) {
                         instance.status = 'qr';
-                        instance.qrCode = qrData;
+                        instance.qrCode = qrBase64; // Use base64 as the identifier too
                         instance.qrCodeBase64 = qrBase64;
                         logger.info({ id }, 'QR Code generated');
-                        this.emit('qr', { instanceId: id, qr: qrData, qrBase64 });
+                        this.emit('qr', { instanceId: id, qr: qrBase64, qrBase64 });
                     }
                 }
 
