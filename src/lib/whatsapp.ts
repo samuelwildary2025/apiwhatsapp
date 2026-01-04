@@ -58,7 +58,6 @@ export class WhatsAppManager extends EventEmitter {
             WhatsAppManager.sharedBrowser = await webkit.launch({
                 headless: true,
                 args: [
-                    '--disable-gpu',
                     '--no-sandbox',
                     '--disable-setuid-sandbox'
                 ]
