@@ -49,6 +49,8 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Memory optimizations for Node.js
 ENV NODE_OPTIONS="--expose-gc --max-old-space-size=256"
+# Force software rendering for WebKit (saves GPU memory overhead)
+ENV LIBGL_ALWAYS_SOFTWARE=1
 
 EXPOSE 3000
 
