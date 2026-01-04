@@ -1087,7 +1087,7 @@ function InstanceDetailContent() {
 
                         {/* Proxy Configuration Card */}
                         <div className="card p-6 mt-6">
-                            <h3 className="font-semibold mb-6 flex items-center gap-2">
+                            <h3 className="font-semibold mb-6 flex items-center gap-2 text-[var(--foreground)]">
                                 <Globe className="w-5 h-5 text-[var(--primary)]" />
                                 Configuração de Proxy
                             </h3>
@@ -1095,7 +1095,7 @@ function InstanceDetailContent() {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-3 gap-2">
                                     <div className="col-span-2">
-                                        <label className="block text-sm font-medium mb-2">Host</label>
+                                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Host</label>
                                         <input
                                             type="text"
                                             placeholder="127.0.0.1"
@@ -1105,7 +1105,7 @@ function InstanceDetailContent() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-2">Porta</label>
+                                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Porta</label>
                                         <input
                                             type="text"
                                             placeholder="8080"
@@ -1117,7 +1117,7 @@ function InstanceDetailContent() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Protocolo</label>
+                                    <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Protocolo</label>
                                     <select
                                         value={proxyForm.protocol}
                                         onChange={(e) => setProxyForm({ ...proxyForm, protocol: e.target.value })}
@@ -1132,7 +1132,7 @@ function InstanceDetailContent() {
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label className="block text-sm font-medium mb-2">Usuário (Opcional)</label>
+                                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Usuário (Opcional)</label>
                                         <input
                                             type="text"
                                             placeholder="user"
@@ -1142,7 +1142,7 @@ function InstanceDetailContent() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-2">Senha (Opcional)</label>
+                                        <label className="block text-sm font-medium mb-2 text-[var(--foreground)]">Senha (Opcional)</label>
                                         <input
                                             type="password"
                                             placeholder="password"
