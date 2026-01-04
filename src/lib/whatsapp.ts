@@ -328,6 +328,7 @@ export class WhatsAppManager extends EventEmitter {
     // Messaging Methods (Using WPPConnect injection)
     // ==========================================
 
+
     async sendMessage(instanceId: string, to: string, content: string) {
         const instance = this.instances.get(instanceId);
         if (!instance || instance.status !== 'connected') throw new Error('Instance not connected');
@@ -335,9 +336,16 @@ export class WhatsAppManager extends EventEmitter {
         // Format number (simple version)
         const chatId = to.includes('@') ? to : `${to}@c.us`;
 
-        return await instance.page.evaluate(({ chatId, content }) => {
+        // Wait for WPP to be ready and use correct API function name
+        return await instance.page.evaluate(async ({ chatId, content }) => {
+            // Wait for WPP to be fully loaded
+            if (typeof window.WPP === 'undefined') {
+                throw new Error('WPP not loaded');
+            }
+
+            // Use sendTextMessage (not sendText) - correct API for wa-js@3
             // @ts-ignore
-            return window.WPP.chat.sendText(chatId, content);
+            return await window.WPP.chat.sendTextMessage(chatId, content);
         }, { chatId, content });
     }
 
