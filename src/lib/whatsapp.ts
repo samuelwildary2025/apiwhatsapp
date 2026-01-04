@@ -112,7 +112,9 @@ export class WhatsAppManager extends EventEmitter {
             storageState, // Load session
             viewport: { width: 1, height: 1 }, // Minimal viewport to save Framebuffer RAM
             deviceScaleFactor: 1, // Standard DPI
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+            isMobile: true, // CRITICAL: Forces mobile version (lighter JS)
+            hasTouch: true, // Required for mobile mode
+            userAgent: 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
             bypassCSP: true,
             javaScriptEnabled: true,
             locale: 'pt-BR',
@@ -120,6 +122,7 @@ export class WhatsAppManager extends EventEmitter {
             serviceWorkers: 'block', // Block Service Workers (High Memory Usage)
             colorScheme: 'dark',
             reducedMotion: 'reduce',
+            offline: false,
         };
 
         // Configure Proxy
