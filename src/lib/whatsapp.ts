@@ -144,11 +144,21 @@ export class WhatsAppManager extends EventEmitter {
             logger.info({ id }, 'Navigating to WhatsApp Web...');
             await page.goto('https://web.whatsapp.com', { waitUntil: 'domcontentloaded' });
 
-            // Inject WPPConnect/WA-JS
-            await page.addScriptTag({ url: 'https://github.com/wppconnect-team/wa-js/releases/download/nightly/wppconnect-wa.js' });
+            // Wait for initial load
+            await page.waitForTimeout(3000);
 
-            // Wait for load
-            await page.waitForTimeout(5000);
+            // Try to inject WPPConnect/WA-JS (optional, not required for QR code)
+            try {
+                await page.addScriptTag({
+                    url: 'https://cdn.jsdelivr.net/npm/@nicobytes/nicobytes-wa-js-plus@4.0.0/dist/wppconnect-wa.js'
+                });
+                logger.info({ id }, 'WPPConnect script injected');
+            } catch (scriptError) {
+                logger.warn({ id, scriptError }, 'Failed to inject WPPConnect script, continuing without it');
+            }
+
+            // Wait for WhatsApp to load
+            await page.waitForTimeout(2000);
 
             // Check for potential QR Code or Ready state loop
             this.monitorState(instance);
