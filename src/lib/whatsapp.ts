@@ -19,6 +19,7 @@ export interface WAInstance {
     status: 'disconnected' | 'connecting' | 'connected' | 'qr';
     qrCode?: string;
     qrCodeBase64?: string;
+    gcInterval?: NodeJS.Timeout;
 }
 
 export type WAEvent =
@@ -183,12 +184,7 @@ export class WhatsAppManager extends EventEmitter {
             return route.abort();
         });
 
-        // Run garbage collection hint periodically
-        setInterval(() => {
-            if (global.gc) {
-                try { global.gc(); } catch (e) { /* ignore */ }
-            }
-        }, 30000);
+        // GC will be triggered when instance is cleaned up
 
         const instance: WAInstance = {
             context,
@@ -199,11 +195,17 @@ export class WhatsAppManager extends EventEmitter {
 
         this.instances.set(instanceId, instance);
 
-        // Handle Disconnect
+        // Handle Disconnect and cleanup
         context.on('close', () => {
             this.updateInstanceStatus(instanceId, 'DISCONNECTED');
             instance.status = 'disconnected';
+            this.instances.delete(instanceId);
             this.emit('disconnected', { instanceId });
+
+            // Trigger garbage collection after cleanup
+            if (global.gc) {
+                try { global.gc(); } catch (e) { /* ignore */ }
+            }
         });
 
         return instance;
