@@ -56,11 +56,7 @@ export class WhatsAppManager extends EventEmitter {
         if (!WhatsAppManager.sharedBrowser) {
             logger.info('Launching SHARED WebKit Browser (Singleton)...');
             WhatsAppManager.sharedBrowser = await webkit.launch({
-                headless: true,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox'
-                ]
+                headless: true
             });
 
             // Handle browser crash/close
