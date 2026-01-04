@@ -1,4 +1,9 @@
 /// <reference lib="dom" />
+declare global {
+    interface Window {
+        WPP: any;
+    }
+}
 import { webkit, BrowserContext, Page } from 'playwright';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
@@ -147,15 +152,8 @@ export class WhatsAppManager extends EventEmitter {
             // Wait for initial load
             await page.waitForTimeout(3000);
 
-            // Try to inject WPPConnect/WA-JS (optional, not required for QR code)
-            try {
-                await page.addScriptTag({
-                    url: 'https://cdn.jsdelivr.net/npm/@nicobytes/nicobytes-wa-js-plus@4.0.0/dist/wppconnect-wa.js'
-                });
-                logger.info({ id }, 'WPPConnect script injected');
-            } catch (scriptError) {
-                logger.warn({ id, scriptError }, 'Failed to inject WPPConnect script, continuing without it');
-            }
+            // Inject WPPConnect/WA-JS
+            await this.injectWPPScript(page, id);
 
             // Wait for WhatsApp to load
             await page.waitForTimeout(2000);
@@ -168,12 +166,35 @@ export class WhatsAppManager extends EventEmitter {
         }
     }
 
+    private async injectWPPScript(page: any, id: string) {
+        try {
+            // Use official WPPConnect wa-js package
+            await page.addScriptTag({
+                url: 'https://cdn.jsdelivr.net/npm/@wppconnect/wa-js@3/dist/wppconnect-wa.js'
+            });
+            logger.info({ id }, 'WPPConnect script injected');
+
+            // Wait for WPP to initialize
+            await page.waitForTimeout(2000);
+
+            // Check if WPP is available
+            const wppAvailable = await page.evaluate(() => typeof window.WPP !== 'undefined');
+            if (wppAvailable) {
+                logger.info({ id }, 'WPP is available');
+            } else {
+                logger.warn({ id }, 'WPP object not available after injection');
+            }
+        } catch (scriptError) {
+            logger.warn({ id, scriptError }, 'Failed to inject WPPConnect script');
+        }
+    }
+
     private async monitorState(instance: WAInstance) {
         const { page, id } = instance;
 
         let attempts = 0;
         const checkInterval = setInterval(async () => {
-            if (attempts > 60) { // 1 minute timeout
+            if (attempts > 120) { // 2 minutes timeout
                 clearInterval(checkInterval);
                 return;
             }
@@ -188,6 +209,17 @@ export class WhatsAppManager extends EventEmitter {
                         instance.status = 'connected';
                         instance.qrCode = undefined;
                         instance.qrCodeBase64 = undefined;
+
+                        // Re-inject WPP script if not available (for messaging)
+                        const wppAvailable = await page.evaluate(() => typeof window.WPP !== 'undefined');
+                        if (!wppAvailable) {
+                            logger.info({ id }, 'Re-injecting WPP script after connection...');
+                            await this.injectWPPScript(page, id);
+                        }
+
+                        // Extract profile info
+                        await this.extractProfileInfo(instance);
+
                         this.updateInstanceStatus(id, 'CONNECTED');
                         this.emit('ready', { instanceId: id });
                         this.emit('authenticated', { instanceId: id });
@@ -238,6 +270,50 @@ export class WhatsAppManager extends EventEmitter {
             where: { id },
             data: { status: status as any }
         });
+    }
+
+    // Extract and save profile info (number, name) after connection
+    private async extractProfileInfo(instance: WAInstance) {
+        const { page, id } = instance;
+
+        try {
+            // Wait a bit for WPP to fully initialize
+            await page.waitForTimeout(3000);
+
+            // Try to get profile info using WPP
+            const profileInfo = await page.evaluate(async () => {
+                if (typeof window.WPP === 'undefined' || !window.WPP.conn) {
+                    return null;
+                }
+
+                try {
+                    const me = await window.WPP.conn.getMe();
+                    return {
+                        waNumber: me?.wid?.user || me?.user,
+                        waName: me?.pushname || me?.name
+                    };
+                } catch (e) {
+                    return null;
+                }
+            });
+
+            if (profileInfo && (profileInfo.waNumber || profileInfo.waName)) {
+                logger.info({ id, profileInfo }, 'Profile info extracted');
+
+                // Save to database
+                await prisma.instance.update({
+                    where: { id },
+                    data: {
+                        waNumber: profileInfo.waNumber || null,
+                        waName: profileInfo.waName || null
+                    }
+                });
+            } else {
+                logger.warn({ id }, 'Could not extract profile info from WPP');
+            }
+        } catch (error) {
+            logger.error({ id, error }, 'Error extracting profile info');
+        }
     }
 
     // Stub for reconnectAll (can be implemented similarly to before)
