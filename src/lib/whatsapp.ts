@@ -22,6 +22,21 @@ export interface WAInstance {
     gcInterval?: NodeJS.Timeout;
 }
 
+export type WAEvent =
+    | 'qr'
+    | 'ready'
+    | 'authenticated'
+    | 'auth_failure'
+    | 'disconnected'
+    | 'message'
+    | 'message_create'
+    | 'message_ack'
+    | 'message_revoke_everyone'
+    | 'group_join'
+    | 'group_leave'
+    | 'group_update'
+    | 'call';
+
 export class WhatsAppManager extends EventEmitter {
     private instances: Map<string, WAInstance> = new Map();
     private static sharedBrowser: Browser | null = null; // Static to ensure singleton across restarts if manager is recreated
