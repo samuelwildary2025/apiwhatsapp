@@ -64,6 +64,8 @@ export class WhatsAppManager extends EventEmitter {
                 logger.error('SHARED BROWSER DISCONNECTED! Resetting...');
                 WhatsAppManager.sharedBrowser = null;
             });
+        } else {
+            logger.info('Reusing existing SHARED WebKit Browser ♻️');
         }
         return WhatsAppManager.sharedBrowser;
     }
