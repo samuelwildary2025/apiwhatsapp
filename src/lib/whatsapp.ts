@@ -71,17 +71,25 @@ export class WhatsAppManager extends EventEmitter {
             }
         });
 
+        // AGGRESSIVE MEMORY OPTIMIZATIONS
         const launchOptions: any = {
             headless: true,
-            // Reduced viewport for lower memory
-            viewport: { width: 800, height: 600 },
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+            // Minimum viable viewport - WhatsApp Web works at 320px width
+            viewport: { width: 320, height: 240 },
+            // Mobile user agent uses less resources
+            userAgent: 'Mozilla/5.0 (Linux; Android 10; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
             bypassCSP: true,
-            // Memory optimizations
             javaScriptEnabled: true,
             locale: 'pt-BR',
-            // Reduce resource loading
             ignoreHTTPSErrors: true,
+            // Disable service workers to save memory
+            serviceWorkers: 'block',
+            // Don't store offline data
+            offline: false,
+            // Reduce color depth
+            colorScheme: 'dark',
+            // Disable animations
+            reducedMotion: 'reduce',
         };
 
         // Configure Proxy if exists
@@ -111,27 +119,78 @@ export class WhatsAppManager extends EventEmitter {
 
         const page = context.pages().length > 0 ? context.pages()[0] : await context.newPage();
 
-        // Block images, media and fonts to save memory
+        // AGGRESSIVE RESOURCE BLOCKING - Block everything non-essential
         await page.route('**/*', (route) => {
             const resourceType = route.request().resourceType();
             const url = route.request().url();
 
-            // Block images, fonts, and media to reduce memory
-            if (['image', 'font', 'media'].includes(resourceType)) {
-                // Allow WhatsApp's critical resources
-                if (url.includes('web.whatsapp.com') && url.includes('.js')) {
+            // Always allow WhatsApp's critical JS and document
+            if (resourceType === 'document' || resourceType === 'script') {
+                if (url.includes('web.whatsapp.com') || url.includes('static.whatsapp')) {
                     return route.continue();
                 }
+            }
+
+            // Allow XHR/Fetch for messaging to work
+            if (resourceType === 'xhr' || resourceType === 'fetch') {
+                if (url.includes('whatsapp') || url.includes('wa.me')) {
+                    return route.continue();
+                }
+            }
+
+            // Allow websocket connections
+            if (resourceType === 'websocket') {
+                return route.continue();
+            }
+
+            // Block ALL images - including profile pics
+            if (resourceType === 'image') {
                 return route.abort();
             }
 
-            // Block tracking/analytics
-            if (url.includes('google-analytics') || url.includes('facebook.com/tr')) {
+            // Block ALL fonts
+            if (resourceType === 'font') {
                 return route.abort();
             }
 
-            return route.continue();
+            // Block ALL media (audio, video)
+            if (resourceType === 'media') {
+                return route.abort();
+            }
+
+            // Block stylesheets except WhatsApp's main CSS
+            if (resourceType === 'stylesheet') {
+                if (!url.includes('web.whatsapp.com')) {
+                    return route.abort();
+                }
+            }
+
+            // Block tracking, analytics, and CDNs we don't need
+            const blockedDomains = [
+                'google-analytics', 'facebook.com/tr', 'fbcdn.net',
+                'doubleclick', 'googletagmanager', 'analytics',
+                'crashlytics', 'sentry.io', 'hotjar', 'clarity.ms'
+            ];
+
+            if (blockedDomains.some(domain => url.includes(domain))) {
+                return route.abort();
+            }
+
+            // Allow everything else from WhatsApp
+            if (url.includes('whatsapp') || url.includes('wa.me')) {
+                return route.continue();
+            }
+
+            // Block unknown third-party resources
+            return route.abort();
         });
+
+        // Run garbage collection hint periodically
+        setInterval(() => {
+            if (global.gc) {
+                try { global.gc(); } catch (e) { /* ignore */ }
+            }
+        }, 30000);
 
         const instance: WAInstance = {
             context,

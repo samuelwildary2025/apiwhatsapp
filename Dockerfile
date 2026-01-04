@@ -47,6 +47,9 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
+# Memory optimizations for Node.js
+ENV NODE_OPTIONS="--expose-gc --max-old-space-size=256 --optimize-for-size"
+
 EXPOSE 3000
 
 # Run migrations and start server
