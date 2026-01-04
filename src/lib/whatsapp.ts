@@ -140,6 +140,12 @@ export class WhatsAppManager extends EventEmitter {
         const context = await browser.newContext(contextOptions);
         const page = await context.newPage();
 
+        logger.info({
+            instanceId,
+            activeContexts: browser.contexts().length,
+            message: 'Browser Context Created'
+        }, 'Singleton Stats 📊');
+
         // Auto-save state on changes
         const saveState = async () => {
             try {
