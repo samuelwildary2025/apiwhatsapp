@@ -23,7 +23,7 @@
   --muted-foreground: #e4e4e7;
   /* Zinco 200 - Bem mais claro para ótima leitura */
 
-  --accent: hsl(0, 0%, 81%);
+  --accent: hsl(0, 1%, 29%);
   --accent-foreground: #fafafa;
 
   --destructive: #ef4444;

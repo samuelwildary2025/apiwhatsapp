@@ -110,13 +110,14 @@ export class WhatsAppManager extends EventEmitter {
         // MEMORY OPTIMIZATIONS (balanced for functionality)
         const contextOptions: any = {
             storageState, // Load session
-            viewport: { width: 600, height: 400 },
+            viewport: { width: 1, height: 1 }, // Minimal viewport to save Framebuffer RAM
+            deviceScaleFactor: 1, // Standard DPI
             userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
             bypassCSP: true,
             javaScriptEnabled: true,
             locale: 'pt-BR',
             ignoreHTTPSErrors: true,
-            serviceWorkers: 'block',
+            serviceWorkers: 'block', // Block Service Workers (High Memory Usage)
             colorScheme: 'dark',
             reducedMotion: 'reduce',
         };
@@ -184,18 +185,21 @@ export class WhatsAppManager extends EventEmitter {
             }
 
             // Block ALL images - including profile pics
-            if (resourceType === 'image') {
-                return route.abort();
-            }
+            if (resourceType === 'image') return route.abort();
 
             // Block ALL fonts
-            if (resourceType === 'font') {
-                return route.abort();
-            }
+            if (resourceType === 'font') return route.abort();
 
             // Block ALL media (audio, video)
-            if (resourceType === 'media') {
-                return route.abort();
+            if (resourceType === 'media') return route.abort();
+
+            // Block other non-essential
+            if (['manifest', 'other', 'texttrack', 'eventsource', 'websocket'].includes(resourceType)) {
+                // Keep websocket for WhatsApp? WhatsApp uses websocket.
+                if (resourceType === 'websocket' && (url.includes('whatsapp') || url.includes('wa.me'))) {
+                    return route.continue();
+                }
+                if (resourceType !== 'websocket') return route.abort();
             }
 
             // Block stylesheets except WhatsApp's main CSS
@@ -216,14 +220,21 @@ export class WhatsAppManager extends EventEmitter {
                 return route.abort();
             }
 
-            // Allow everything else from WhatsApp
-            if (url.includes('whatsapp') || url.includes('wa.me')) {
-                return route.continue();
-            }
-
-            // Block unknown third-party resources
-            return route.abort();
+            return route.continue();
         });
+
+        // Periodic Memory Cleanup (Force GC inside page if available)
+        setInterval(async () => {
+            if (page.isClosed()) return;
+            try {
+                await page.evaluate(() => {
+                    if ((window as any).gc) (window as any).gc();
+                    if ('caches' in window) window.caches.keys().then(names => {
+                        for (const name of names) window.caches.delete(name);
+                    });
+                });
+            } catch (e) { /* ignore */ }
+        }, 300000); // Every 5 minutes
 
         // GC will be triggered when instance is cleaned up
 
