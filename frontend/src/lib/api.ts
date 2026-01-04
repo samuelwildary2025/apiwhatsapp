@@ -93,10 +93,16 @@ class ApiClient {
     }
 
     // Admin - Instances
-    async createInstance(name: string) {
+    async createInstance(name: string, proxyConfig?: {
+        proxyHost?: string;
+        proxyPort?: string;
+        proxyUsername?: string;
+        proxyPassword?: string;
+        proxyProtocol?: string;
+    }) {
         return this.request('/admin/instance', {
             method: 'POST',
-            body: JSON.stringify({ name }),
+            body: JSON.stringify({ name, ...proxyConfig }),
         });
     }
 
@@ -164,6 +170,11 @@ class ApiClient {
         rejectCalls?: boolean;
         readMessages?: boolean;
         syncFullHistory?: boolean;
+        proxyHost?: string;
+        proxyPort?: string;
+        proxyUsername?: string;
+        proxyPassword?: string;
+        proxyProtocol?: string;
     }) {
         return this.request(`/instance/${id}/settings`, {
             method: 'PATCH',

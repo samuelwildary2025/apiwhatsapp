@@ -32,6 +32,13 @@ function InstancesContent() {
     const [newInstanceName, setNewInstanceName] = useState('');
     const [creating, setCreating] = useState(false);
 
+    const [enableProxy, setEnableProxy] = useState(false);
+    const [proxyHost, setProxyHost] = useState('');
+    const [proxyPort, setProxyPort] = useState('');
+    const [proxyUsername, setProxyUsername] = useState('');
+    const [proxyPassword, setProxyPassword] = useState('');
+    const [proxyProtocol, setProxyProtocol] = useState('http');
+
     useEffect(() => {
         loadData();
     }, []);
@@ -54,11 +61,27 @@ function InstancesContent() {
 
         setCreating(true);
         try {
-            const response = await api.createInstance(newInstanceName);
+            const proxyConfig = enableProxy ? {
+                proxyHost,
+                proxyPort,
+                proxyUsername,
+                proxyPassword,
+                proxyProtocol
+            } : undefined;
+
+            const response = await api.createInstance(newInstanceName, proxyConfig);
             if (response.data) {
                 toast.success('Instância criada com sucesso!');
                 setShowCreateModal(false);
                 setNewInstanceName('');
+                // Reset proxy fields
+                setEnableProxy(false);
+                setProxyHost('');
+                setProxyPort('');
+                setProxyUsername('');
+                setProxyPassword('');
+                setProxyProtocol('http');
+
                 loadData();
             }
         } catch (error: any) {
@@ -130,11 +153,11 @@ function InstancesContent() {
                                 <div className="flex items-center gap-3">
                                     <div
                                         className={`w-3 h-3 rounded-full ${instance.status === 'connected'
-                                                ? 'status-connected'
-                                                : instance.status === 'connecting' ||
-                                                    instance.status === 'qr'
-                                                    ? 'status-connecting'
-                                                    : 'status-disconnected'
+                                            ? 'status-connected'
+                                            : instance.status === 'connecting' ||
+                                                instance.status === 'qr'
+                                                ? 'status-connecting'
+                                                : 'status-disconnected'
                                             }`}
                                     />
                                     <div>
@@ -165,11 +188,11 @@ function InstancesContent() {
                                     <span className="text-[var(--muted)]">Status</span>
                                     <span
                                         className={`capitalize ${instance.status === 'connected'
-                                                ? 'text-[var(--success)]'
-                                                : instance.status === 'connecting' ||
-                                                    instance.status === 'qr'
-                                                    ? 'text-[var(--warning)]'
-                                                    : 'text-[var(--danger)]'
+                                            ? 'text-[var(--success)]'
+                                            : instance.status === 'connecting' ||
+                                                instance.status === 'qr'
+                                                ? 'text-[var(--warning)]'
+                                                : 'text-[var(--danger)]'
                                             }`}
                                     >
                                         {instance.status === 'qr' ? 'Aguardando QR' : instance.status}
@@ -206,7 +229,7 @@ function InstancesContent() {
             {/* Create Instance Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="glass rounded-2xl p-6 w-full max-w-md animate-fade-in">
+                    <div className="glass rounded-2xl p-6 w-full max-w-md animate-fade-in max-h-[90vh] overflow-y-auto">
                         <h3 className="text-xl font-semibold mb-4">Nova Instância</h3>
 
                         <div className="space-y-4">
@@ -220,10 +243,88 @@ function InstancesContent() {
                                     value={newInstanceName}
                                     onChange={(e) => setNewInstanceName(e.target.value)}
                                     autoFocus
+                                    className="w-full p-2 rounded-lg border bg-[var(--background)]"
                                 />
                             </div>
 
-                            <div className="flex gap-3">
+                            {/* Proxy Toggle */}
+                            <div className="border-t pt-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className="text-sm font-medium">Usar Proxy?</label>
+                                    <div
+                                        onClick={() => setEnableProxy(!enableProxy)}
+                                        className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${enableProxy ? 'bg-[var(--primary)]' : 'bg-gray-300'}`}
+                                    >
+                                        <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${enableProxy ? 'translate-x-4' : ''}`} />
+                                    </div>
+                                </div>
+
+                                {enableProxy && (
+                                    <div className="space-y-3 animate-fade-in">
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="col-span-2">
+                                                <label className="block text-xs text-[var(--muted)] mb-1">Host</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="127.0.0.1"
+                                                    value={proxyHost}
+                                                    onChange={(e) => setProxyHost(e.target.value)}
+                                                    className="w-full p-2 text-sm rounded-lg border bg-[var(--background)]"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-[var(--muted)] mb-1">Porta</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="8080"
+                                                    value={proxyPort}
+                                                    onChange={(e) => setProxyPort(e.target.value)}
+                                                    className="w-full p-2 text-sm rounded-lg border bg-[var(--background)]"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs text-[var(--muted)] mb-1">Protocolo</label>
+                                            <select
+                                                value={proxyProtocol}
+                                                onChange={(e) => setProxyProtocol(e.target.value)}
+                                                className="w-full p-2 text-sm rounded-lg border bg-[var(--background)]"
+                                            >
+                                                <option value="http">HTTP</option>
+                                                <option value="https">HTTPS</option>
+                                                <option value="socks4">SOCKS4</option>
+                                                <option value="socks5">SOCKS5</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block text-xs text-[var(--muted)] mb-1">Usuário (Opcional)</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="user"
+                                                    value={proxyUsername}
+                                                    onChange={(e) => setProxyUsername(e.target.value)}
+                                                    className="w-full p-2 text-sm rounded-lg border bg-[var(--background)]"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-[var(--muted)] mb-1">Senha (Opcional)</label>
+                                                <input
+                                                    type="password"
+                                                    placeholder="pass"
+                                                    value={proxyPassword}
+                                                    onChange={(e) => setProxyPassword(e.target.value)}
+                                                    className="w-full p-2 text-sm rounded-lg border bg-[var(--background)]"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
                                 <button
                                     onClick={() => setShowCreateModal(false)}
                                     className="btn btn-secondary flex-1"

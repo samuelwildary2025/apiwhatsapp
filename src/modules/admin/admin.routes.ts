@@ -33,6 +33,11 @@ const updateInstanceSchema = z.object({
     name: z.string().min(1).max(100).optional(),
     webhookUrl: z.string().url().nullable().optional(),
     webhookEvents: z.array(z.string()).optional(),
+    proxyHost: z.string().optional(),
+    proxyPort: z.string().optional(),
+    proxyUsername: z.string().optional(),
+    proxyPassword: z.string().optional(),
+    proxyProtocol: z.string().optional(),
 });
 
 const globalWebhookSchema = z.object({
@@ -200,6 +205,11 @@ admin.post('/instance/:id/update', async (c) => {
             name: data.name,
             webhookUrl: data.webhookUrl,
             webhookEvents: data.webhookEvents,
+            ...(data.proxyHost !== undefined && { proxyHost: data.proxyHost }),
+            ...(data.proxyPort !== undefined && { proxyPort: data.proxyPort }),
+            ...(data.proxyUsername !== undefined && { proxyUsername: data.proxyUsername }),
+            ...(data.proxyPassword !== undefined && { proxyPassword: data.proxyPassword }),
+            ...(data.proxyProtocol !== undefined && { proxyProtocol: data.proxyProtocol }),
         },
     });
 

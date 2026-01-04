@@ -54,13 +54,42 @@ export class WhatsAppManager extends EventEmitter {
 
         logger.info({ instanceId, engine: 'WebKit' }, 'Launching Safari/WebKit instance...');
 
-        // Launch Persistent Context (Saves session data)
-        const context = await webkit.launchPersistentContext(sessionPath, {
+        // Fetch proxy settings from DB
+        const dbInstance = await prisma.instance.findUnique({
+            where: { id: instanceId },
+            select: {
+                proxyHost: true,
+                proxyPort: true,
+                proxyProtocol: true,
+                proxyUsername: true,
+                proxyPassword: true,
+            }
+        });
+
+        const launchOptions: any = {
             headless: true, // Set to false to see the browser
             viewport: { width: 1280, height: 960 },
             userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
             bypassCSP: true, // Important for injecting scripts
-        });
+        };
+
+        // Configure Proxy if exists
+        if (dbInstance?.proxyHost && dbInstance?.proxyPort) {
+            const protocol = dbInstance.proxyProtocol || 'http';
+            launchOptions.proxy = {
+                server: `${protocol}://${dbInstance.proxyHost}:${dbInstance.proxyPort}`,
+            };
+
+            if (dbInstance.proxyUsername && dbInstance.proxyPassword) {
+                launchOptions.proxy.username = dbInstance.proxyUsername;
+                launchOptions.proxy.password = dbInstance.proxyPassword;
+            }
+
+            logger.info({ instanceId, proxy: launchOptions.proxy.server }, 'Using Proxy configuration');
+        }
+
+        // Launch Persistent Context (Saves session data)
+        const context = await webkit.launchPersistentContext(sessionPath, launchOptions);
 
         const page = context.pages().length > 0 ? context.pages()[0] : await context.newPage();
 

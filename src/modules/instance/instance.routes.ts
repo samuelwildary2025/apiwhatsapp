@@ -22,6 +22,12 @@ const updateSettingsSchema = z.object({
     rejectCalls: z.boolean().optional(),
     readMessages: z.boolean().optional(),
     syncFullHistory: z.boolean().optional(),
+    // Proxy
+    proxyHost: z.string().optional(),
+    proxyPort: z.string().optional(),
+    proxyUsername: z.string().optional(),
+    proxyPassword: z.string().optional(),
+    proxyProtocol: z.string().optional(),
 });
 
 // ================================
@@ -436,6 +442,11 @@ instance.get('/:id/settings', authMiddleware, async (c) => {
             rejectCalls: true,
             readMessages: true,
             syncFullHistory: true,
+            proxyHost: true,
+            proxyPort: true,
+            proxyUsername: true,
+            proxyPassword: true,
+            proxyProtocol: true,
         },
     });
 
@@ -480,6 +491,11 @@ instance.patch('/:id/settings', authMiddleware, async (c) => {
                 ...(data.rejectCalls !== undefined && { rejectCalls: data.rejectCalls }),
                 ...(data.readMessages !== undefined && { readMessages: data.readMessages }),
                 ...(data.syncFullHistory !== undefined && { syncFullHistory: data.syncFullHistory }),
+                ...(data.proxyHost !== undefined && { proxyHost: data.proxyHost }),
+                ...(data.proxyPort !== undefined && { proxyPort: data.proxyPort }),
+                ...(data.proxyUsername !== undefined && { proxyUsername: data.proxyUsername }),
+                ...(data.proxyPassword !== undefined && { proxyPassword: data.proxyPassword }),
+                ...(data.proxyProtocol !== undefined && { proxyProtocol: data.proxyProtocol }),
             },
             select: {
                 id: true,
@@ -488,6 +504,11 @@ instance.patch('/:id/settings', authMiddleware, async (c) => {
                 rejectCalls: true,
                 readMessages: true,
                 syncFullHistory: true,
+                proxyHost: true,
+                proxyPort: true,
+                proxyUsername: true,
+                proxyPassword: true,
+                proxyProtocol: true,
             },
         });
 
