@@ -72,10 +72,16 @@ export class WhatsAppManager extends EventEmitter {
         });
 
         const launchOptions: any = {
-            headless: true, // Set to false to see the browser
-            viewport: { width: 1280, height: 960 },
+            headless: true,
+            // Reduced viewport for lower memory
+            viewport: { width: 800, height: 600 },
             userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
-            bypassCSP: true, // Important for injecting scripts
+            bypassCSP: true,
+            // Memory optimizations
+            javaScriptEnabled: true,
+            locale: 'pt-BR',
+            // Reduce resource loading
+            ignoreHTTPSErrors: true,
         };
 
         // Configure Proxy if exists
@@ -104,6 +110,28 @@ export class WhatsAppManager extends EventEmitter {
         const context = await webkit.launchPersistentContext(sessionPath, launchOptions);
 
         const page = context.pages().length > 0 ? context.pages()[0] : await context.newPage();
+
+        // Block images, media and fonts to save memory
+        await page.route('**/*', (route) => {
+            const resourceType = route.request().resourceType();
+            const url = route.request().url();
+
+            // Block images, fonts, and media to reduce memory
+            if (['image', 'font', 'media'].includes(resourceType)) {
+                // Allow WhatsApp's critical resources
+                if (url.includes('web.whatsapp.com') && url.includes('.js')) {
+                    return route.continue();
+                }
+                return route.abort();
+            }
+
+            // Block tracking/analytics
+            if (url.includes('google-analytics') || url.includes('facebook.com/tr')) {
+                return route.abort();
+            }
+
+            return route.continue();
+        });
 
         const instance: WAInstance = {
             context,
