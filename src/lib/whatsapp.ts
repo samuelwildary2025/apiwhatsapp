@@ -59,7 +59,6 @@ export class WhatsAppManager extends EventEmitter {
             headless: true, // Set to false to see the browser
             viewport: { width: 1280, height: 960 },
             userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
-            permissions: ['clipboard-read', 'clipboard-write'],
             bypassCSP: true, // Important for injecting scripts
         });
 
