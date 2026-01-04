@@ -3,30 +3,34 @@
 :root {
   /* Dark Mode Palette (Zinc based) */
   --background: #09090b;
-  --foreground: #e4e4e7; /* Zinco 200 - Melhor leitura que branco puro */
-  
-  --card: #18181b; /* Zinco 900 - Um pouco mais claro que o anterior (#121214) */
+  --foreground: #e4e4e7;
+  /* Zinco 200 - Melhor leitura que branco puro */
+
+  --card: #18181b;
+  /* Zinco 900 - Um pouco mais claro que o anterior (#121214) */
   --card-foreground: #fafafa;
-  
+
   --popover: #18181b;
   --popover-foreground: #fafafa;
-  
+
   --primary: #22c55e;
   --primary-foreground: #052e16;
-  
+
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
-  
+
   --muted: #27272a;
-  --muted-foreground: #d4d4d8; /* Zinco 300 - Mais claro que o anterior (#a1a1aa/Zinc 400) */
-  
+  --muted-foreground: #e4e4e7;
+  /* Zinco 200 - Bem mais claro para ótima leitura */
+
   --accent: #27272a;
   --accent-foreground: #fafafa;
-  
+
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
 
-  --border: #3f3f46; /* Zinco 700 - Mais visível que o anterior (#27272a) */
+  --border: #3f3f46;
+  /* Zinco 700 - Mais visível que o anterior (#27272a) */
   --input: #27272a;
   --ring: #22c55e;
 }
@@ -57,17 +61,19 @@
   * {
     @apply border-[var(--border)];
   }
+
   body {
     @apply bg-[var(--background)] text-[var(--foreground)];
   }
 }
 
 @layer components {
+
   /* Modern Card Style */
   .card {
     @apply bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm transition-all duration-200;
   }
-  
+
   .card-hover {
     @apply hover:border-[var(--primary)]/30 hover:bg-[var(--secondary)]/10 hover:-translate-y-0.5;
   }
@@ -76,15 +82,15 @@
   .btn {
     @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2;
   }
-  
+
   .btn-primary {
-    @apply bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 shadow-[0_0_15px_rgba(34,197,94,0.3)];
+    @apply bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90 shadow-[0_0_15px_rgba(34, 197, 94, 0.3)];
   }
-  
+
   .btn-secondary {
     @apply bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:bg-[var(--secondary)]/80 border border-[var(--border)];
   }
-  
+
   .btn-danger {
     @apply bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:bg-[var(--destructive)]/90;
   }
@@ -97,15 +103,15 @@
   .status-dot {
     @apply w-2.5 h-2.5 rounded-full ring-2 ring-[var(--card)];
   }
-  
+
   .status-connected {
-    @apply bg-[var(--primary)] shadow-[0_0_8px_rgba(34,197,94,0.6)];
+    @apply bg-[var(--primary)] shadow-[0_0_8px_rgba(34, 197, 94, 0.6)];
   }
-  
+
   .status-connecting {
-    @apply bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)];
+    @apply bg-yellow-500 shadow-[0_0_8px_rgba(234, 179, 8, 0.6)];
   }
-  
+
   .status-disconnected {
     @apply bg-[var(--destructive)];
   }
@@ -113,8 +119,15 @@
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
