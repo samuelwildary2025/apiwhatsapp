@@ -141,6 +141,43 @@ export class WhatsAppManager extends EventEmitter {
 
         const browser = await this.getSharedBrowser();
         const context = await browser.newContext(contextOptions);
+
+        // MEMORY LIMIT INJECTION - Block/limit storage APIs that consume RAM
+        await context.addInitScript(() => {
+            // Limit localStorage to minimal entries
+            const originalSetItem = localStorage.setItem.bind(localStorage);
+            localStorage.setItem = function (key: string, value: string) {
+                if (localStorage.length > 50) {
+                    // Remove oldest items when limit reached
+                    const firstKey = localStorage.key(0);
+                    if (firstKey) localStorage.removeItem(firstKey);
+                }
+                return originalSetItem(key, value);
+            };
+
+            // Periodically clear IndexedDB to prevent memory bloat
+            setInterval(async () => {
+                try {
+                    const dbs = await indexedDB.databases();
+                    for (const db of dbs) {
+                        // Only clear non-essential databases (keep WAM for auth)
+                        if (db.name && !db.name.includes('wawc') && !db.name.includes('local-storage')) {
+                            indexedDB.deleteDatabase(db.name);
+                        }
+                    }
+                    // Clear caches
+                    if ('caches' in window) {
+                        const names = await caches.keys();
+                        for (const name of names) {
+                            await caches.delete(name);
+                        }
+                    }
+                    // Force GC if available
+                    if ((window as any).gc) (window as any).gc();
+                } catch (e) { /* ignore */ }
+            }, 120000); // Every 2 minutes
+        });
+
         const page = await context.newPage();
 
         logger.info({
