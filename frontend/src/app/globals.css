@@ -5,20 +5,20 @@
   --background: #09090b;
   --foreground: #e4e4e7; /* Zinco 200 - Melhor leitura que branco puro */
   
-  --card: #121214; /* Mais escuro que o anterior, melhor contraste */
+  --card: #18181b; /* Zinco 900 - Um pouco mais claro que o anterior (#121214) */
   --card-foreground: #fafafa;
   
   --popover: #18181b;
   --popover-foreground: #fafafa;
   
   --primary: #22c55e;
-  --primary-foreground: #052e16; /* Texto escuro no botão verde para contraste */
+  --primary-foreground: #052e16;
   
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
   
   --muted: #27272a;
-  --muted-foreground: #a1a1aa;
+  --muted-foreground: #d4d4d8; /* Zinco 300 - Mais claro que o anterior (#a1a1aa/Zinc 400) */
   
   --accent: #27272a;
   --accent-foreground: #fafafa;
@@ -26,7 +26,7 @@
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
 
-  --border: #27272a;
+  --border: #3f3f46; /* Zinco 700 - Mais visível que o anterior (#27272a) */
   --input: #27272a;
   --ring: #22c55e;
 }
