@@ -76,8 +76,15 @@ export class WhatsAppManager extends EventEmitter {
         // Configure Proxy if exists
         if (dbInstance?.proxyHost && dbInstance?.proxyPort) {
             const protocol = dbInstance.proxyProtocol || 'http';
+            let host = dbInstance.proxyHost;
+
+            // Handle IPv6: If it contains ':' and isn't already wrapped in [], add them.
+            if (host.includes(':') && !host.startsWith('[')) {
+                host = `[${host}]`;
+            }
+
             launchOptions.proxy = {
-                server: `${protocol}://${dbInstance.proxyHost}:${dbInstance.proxyPort}`,
+                server: `${protocol}://${host}:${dbInstance.proxyPort}`,
             };
 
             if (dbInstance.proxyUsername && dbInstance.proxyPassword) {
