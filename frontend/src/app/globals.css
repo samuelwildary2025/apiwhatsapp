@@ -19,11 +19,11 @@
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
 
-  --muted: #27272a;
+  --muted: #ccccce;
   --muted-foreground: #e4e4e7;
   /* Zinco 200 - Bem mais claro para ótima leitura */
 
-  --accent: #27272a;
+  --accent: hsl(0, 0%, 81%);
   --accent-foreground: #fafafa;
 
   --destructive: #ef4444;
