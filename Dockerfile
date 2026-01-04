@@ -1,5 +1,5 @@
 # Stage 1: Build Frontend
-FROM node:20-alpine AS frontend-builder
+FROM node:20-bookworm-slim AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
@@ -9,10 +9,11 @@ ENV NEXT_PUBLIC_API_URL=""
 RUN npm run build
 
 # Stage 2: Build Backend
-FROM node:20-alpine AS backend-builder
+FROM node:20-bookworm-slim AS backend-builder
 WORKDIR /app
-# Install OpenSSL for Prisma and git
-RUN apk add --no-cache openssl openssl-dev git
+# Install OpenSSL and git (required for some dependencies)
+RUN apt-get update -y && apt-get install -y openssl git libssl-dev && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
 RUN npm ci
 COPY . .
@@ -22,7 +23,7 @@ RUN npm run db:generate
 RUN npm run build
 
 # Stage 3: Runner
-# Use official Playwright image which includes WebKit dependencies
+# Use official Playwright image which includes WebKit dependencies (Ubuntu based)
 FROM mcr.microsoft.com/playwright:v1.49.1-jammy AS runner
 
 WORKDIR /app
@@ -44,8 +45,6 @@ RUN mkdir -p sessions
 
 ENV NODE_ENV=production
 ENV PORT=3000
-# Playwright specific - prevents it from trying to download browsers at runtime if not present, 
-# although the base image has them. We might need to ensure webkit is there.
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 EXPOSE 3000
