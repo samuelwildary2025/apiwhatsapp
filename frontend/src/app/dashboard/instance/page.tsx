@@ -248,18 +248,30 @@ function InstanceDetailContent() {
             toast.success('Conectando... Escaneie o QR Code');
             loadInstance();
 
-            // Start polling for status
-            const poll = setInterval(async () => {
+            // Start polling for status immediately
+            const fetchStatus = async () => {
                 const statusRes = await api.getInstanceStatus(id);
                 if (statusRes.data) {
                     const statusData = statusRes.data as Partial<Instance>;
                     setInstance((prev: Instance | null) => prev ? { ...prev, ...statusData } : prev);
                     if (statusData.status === 'connected') {
-                        clearInterval(poll);
-                        toast.success('Conectado com sucesso!');
+                        return true; // Stop polling
                     }
                 }
-            }, 3000);
+                return false;
+            };
+
+            // Fetch immediately
+            await fetchStatus();
+
+            // Then poll every 2 seconds
+            const poll = setInterval(async () => {
+                const shouldStop = await fetchStatus();
+                if (shouldStop) {
+                    clearInterval(poll);
+                    toast.success('Conectado com sucesso!');
+                }
+            }, 2000);
 
             // Stop polling after 2 minutes
             setTimeout(() => clearInterval(poll), 120000);
