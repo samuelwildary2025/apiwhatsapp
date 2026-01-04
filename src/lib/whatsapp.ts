@@ -4,7 +4,7 @@ declare global {
         WPP: any;
     }
 }
-import { webkit, BrowserContext, Page } from 'playwright';
+import { webkit, Browser, BrowserContext, Page } from 'playwright';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -22,23 +22,9 @@ export interface WAInstance {
     gcInterval?: NodeJS.Timeout;
 }
 
-export type WAEvent =
-    | 'qr'
-    | 'ready'
-    | 'authenticated'
-    | 'auth_failure'
-    | 'disconnected'
-    | 'message'
-    | 'message_create'
-    | 'message_ack'
-    | 'message_revoke_everyone'
-    | 'group_join'
-    | 'group_leave'
-    | 'group_update'
-    | 'call';
-
 export class WhatsAppManager extends EventEmitter {
     private instances: Map<string, WAInstance> = new Map();
+    private static sharedBrowser: Browser | null = null; // Static to ensure singleton across restarts if manager is recreated
 
     constructor() {
         super();
@@ -51,14 +37,38 @@ export class WhatsAppManager extends EventEmitter {
         }
     }
 
+    private async getSharedBrowser() {
+        if (!WhatsAppManager.sharedBrowser) {
+            logger.info('Launching SHARED WebKit Browser (Singleton)...');
+            WhatsAppManager.sharedBrowser = await webkit.launch({
+                headless: true,
+                args: [
+                    '--disable-gpu',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox'
+                ]
+            });
+
+            // Handle browser crash/close
+            WhatsAppManager.sharedBrowser.on('disconnected', () => {
+                logger.error('SHARED BROWSER DISCONNECTED! Resetting...');
+                WhatsAppManager.sharedBrowser = null;
+            });
+        }
+        return WhatsAppManager.sharedBrowser;
+    }
+
     async createInstance(instanceId: string): Promise<WAInstance> {
         if (this.instances.has(instanceId)) {
             throw new Error(`Instance ${instanceId} already exists`);
         }
 
-        const sessionPath = path.join(env.waSessionPath, instanceId);
+        const sessionDir = path.join(env.waSessionPath, instanceId);
+        if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
 
-        logger.info({ instanceId, engine: 'WebKit' }, 'Launching Safari/WebKit instance...');
+        const stateFile = path.join(sessionDir, 'state.json');
+
+        logger.info({ instanceId, engine: 'WebKit', mode: 'Context' }, 'Creating Browser Context...');
 
         // Fetch proxy settings from DB
         const dbInstance = await prisma.instance.findUnique({
@@ -72,51 +82,64 @@ export class WhatsAppManager extends EventEmitter {
             }
         });
 
+        // Load saved state if exists
+        let storageState: string | undefined = undefined;
+        if (fs.existsSync(stateFile)) {
+            try {
+                // Verify if valid JSON
+                JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+                storageState = stateFile;
+                logger.info({ instanceId }, 'Restoring session from state.json');
+            } catch (e) {
+                logger.warn({ instanceId }, 'Invalid state file, starting fresh');
+            }
+        }
+
         // MEMORY OPTIMIZATIONS (balanced for functionality)
-        const launchOptions: any = {
-            headless: true,
-            // Minimum viewport that WhatsApp Web needs to show QR code
+        const contextOptions: any = {
+            storageState, // Load session
             viewport: { width: 600, height: 400 },
-            // Desktop user agent (mobile causes redirect issues)
             userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
             bypassCSP: true,
             javaScriptEnabled: true,
             locale: 'pt-BR',
             ignoreHTTPSErrors: true,
-            // Disable service workers to save memory
             serviceWorkers: 'block',
-            // Reduce color depth
             colorScheme: 'dark',
-            // Disable animations
             reducedMotion: 'reduce',
         };
 
-        // Configure Proxy if exists
+        // Configure Proxy
         if (dbInstance?.proxyHost && dbInstance?.proxyPort) {
             const protocol = dbInstance.proxyProtocol || 'http';
             let host = dbInstance.proxyHost;
+            if (host.includes(':') && !host.startsWith('[')) host = `[${host}]`;
 
-            // Handle IPv6: If it contains ':' and isn't already wrapped in [], add them.
-            if (host.includes(':') && !host.startsWith('[')) {
-                host = `[${host}]`;
-            }
-
-            launchOptions.proxy = {
+            contextOptions.proxy = {
                 server: `${protocol}://${host}:${dbInstance.proxyPort}`,
             };
-
             if (dbInstance.proxyUsername && dbInstance.proxyPassword) {
-                launchOptions.proxy.username = dbInstance.proxyUsername;
-                launchOptions.proxy.password = dbInstance.proxyPassword;
+                contextOptions.proxy.username = dbInstance.proxyUsername;
+                contextOptions.proxy.password = dbInstance.proxyPassword;
             }
-
-            logger.info({ instanceId, proxy: launchOptions.proxy.server }, 'Using Proxy configuration');
         }
 
-        // Launch Persistent Context (Saves session data)
-        const context = await webkit.launchPersistentContext(sessionPath, launchOptions);
+        const browser = await this.getSharedBrowser();
+        const context = await browser.newContext(contextOptions);
+        const page = await context.newPage();
 
-        const page = context.pages().length > 0 ? context.pages()[0] : await context.newPage();
+        // Auto-save state on changes
+        const saveState = async () => {
+            try {
+                await context.storageState({ path: stateFile });
+            } catch (e) { /* ignore errors during close */ }
+        };
+
+        // Save state periodically and on important events
+        page.on('load', saveState);
+        page.on('close', saveState);
+        setInterval(saveState, 60000); // Autosave every minute
+
 
         // AGGRESSIVE RESOURCE BLOCKING - Block everything non-essential
         await page.route('**/*', (route) => {
